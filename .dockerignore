@@ -1,0 +1,11 @@
+Dockerfile*
+docker-compose*.yml
+railway.toml
+Makefile
+.air.toml
+*.log
+tmp/
+server
+.git/
+.gitignore
+README.md

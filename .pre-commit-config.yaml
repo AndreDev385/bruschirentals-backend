@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v1.64.8
+    hooks:
+      - id: golangci-lint
+  - repo: local
+    hooks:
+      - id: go-test
+        name: Run Go tests
+        entry: make test
+        language: system
+        pass_filenames: false
+      - id: go-mod-tidy
+        name: Tidy Go modules
+        entry: go mod tidy
+        language: system
+        pass_filenames: false

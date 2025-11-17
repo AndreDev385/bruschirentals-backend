@@ -1,0 +1,33 @@
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck
+    - gofmt
+    - goimports
+    - revive
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gosimple
+    - goconst
+    - gocyclo
+    - misspell
+    - unconvert
+    - unparam
+
+linters-settings:
+  gocyclo:
+    min-complexity: 15
+  golint:
+    min-confidence: 0.8
+
+issues:
+  exclude-use-default: false
+  exclude:
+    - "Error return value of `.*\\.Sync` is not checked"
+    - "Error return value of `.*\\.Close` is not checked"
+  exclude-dirs:
+    - docs/

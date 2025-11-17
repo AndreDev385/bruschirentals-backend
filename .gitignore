@@ -1,0 +1,32 @@
+# Binaries
+/server
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Temp
+tmp/
+postgres_data/
+
+# Logs
+*.log
+coverage.out
+
+# Env
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+go.work
+docs/

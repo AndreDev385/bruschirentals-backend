@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies
+      run: go mod tidy
+
+    - name: Install migrate
+      run: |
+        curl -L https://github.com/golang-migrate/migrate/releases/latest/download/migrate.linux-amd64.tar.gz | tar xvz
+        sudo mv migrate /usr/local/bin/
+
+    - name: Run migrations
+      run: migrate -path ./migrations -database "postgres://user:password@localhost:5432/test_db?sslmode=disable" up
+      env:
+        DATABASE_URL: postgres://user:password@localhost:5432/test_db?sslmode=disable
+
+    - name: Run tests with coverage
+      run: go test -coverprofile=coverage.out ./...
+      env:
+        DATABASE_URL: postgres://user:password@localhost:5432/test_db?sslmode=disable
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.out
+
+    - name: Run linter
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: latest
+
+    - name: Build
+      run: make build
