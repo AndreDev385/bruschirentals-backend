@@ -1,6 +1,6 @@
 .PHONY: build run dev clean test lint coverage release docker-dev docker-prod migrate-up migrate-down migrate-create
 
-DB_URL ?= postgres://user:password@localhost:5432/bruschi_rentals?sslmode=disable
+DB_URL ?= $(shell echo $$DATABASE_URL || echo postgres://user:password@localhost:5432/bruschi_rentals?sslmode=disable)
 
 build:
 	go build -o server ./cmd/server
@@ -31,6 +31,9 @@ migrate-up:
 
 migrate-down:
 	migrate -path ./migrations -database "$(DB_URL)" down
+
+migrate-force:
+	migrate -path ./migrations -database "$(DB_URL)" force 1
 
 migrate-create:
 	@echo "Usage: make migrate-create NAME=migration_name"

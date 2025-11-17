@@ -34,7 +34,7 @@ func NewHealthHandler(db *sqlx.DB, logger *zap.Logger, tracer trace.Tracer) *Hea
 // @Produce json
 // @Success 200 {object} map[string]string "status: healthy"
 // @Failure 503 {object} ErrorResponse "Database unhealthy"
-// @Router /v1/health [get]
+// @Router /api/v1/health [get]
 func (h *HealthHandler) CheckHealth(c echo.Context) error {
 	var span trace.Span
 	if h.Tracer != nil {

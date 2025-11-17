@@ -15,10 +15,13 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/Andre385/bruschirentals-backend/docs"
 	"github.com/Andre385/bruschirentals-backend/internal/config"
 	"github.com/Andre385/bruschirentals-backend/internal/handlers"
 	"github.com/Andre385/bruschirentals-backend/internal/logging"
 	"github.com/Andre385/bruschirentals-backend/internal/middleware"
+	"github.com/Andre385/bruschirentals-backend/internal/repositories"
+	"github.com/Andre385/bruschirentals-backend/internal/services"
 	"github.com/Andre385/bruschirentals-backend/internal/tracing"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -81,14 +84,28 @@ func main() {
 	// Add logging middleware
 	e.Use(middleware.Logging(logger))
 
+	// Initialize repositories
+	neighborhoodRepo := repositories.NewNeighborhoodRepository(db)
+
+	// Initialize services
+	neighborhoodService := services.NewNeighborhoodService(neighborhoodRepo)
+
 	// Initialize handlers
 	var tracer trace.Tracer
 	if cfg.OTLPEndpoint != "" {
 		tracer = otel.Tracer("health-handler")
 	}
 	healthHandler := handlers.NewHealthHandler(db, logger, tracer)
+	neighborhoodHandler := handlers.NewNeighborhoodHandler(neighborhoodService)
 
 	e.GET("/api/v1/health", healthHandler.CheckHealth)
+
+	// Neighborhood routes
+	e.POST("/api/v1/neighborhoods", neighborhoodHandler.Create)
+	e.GET("/api/v1/neighborhoods/:id", neighborhoodHandler.Get)
+	e.PUT("/api/v1/neighborhoods/:id", neighborhoodHandler.Update)
+	e.DELETE("/api/v1/neighborhoods/:id", neighborhoodHandler.Delete)
+	e.GET("/api/v1/neighborhoods", neighborhoodHandler.List)
 
 	// Swagger docs
 	e.GET("/swagger/*", echoSwagger.WrapHandler)

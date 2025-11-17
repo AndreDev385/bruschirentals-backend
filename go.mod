@@ -34,8 +34,11 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.28.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
+	github.com/golang-migrate/migrate/v4 v4.19.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
@@ -52,7 +55,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/swaggo/echo-swagger v1.4.1 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
-	github.com/swaggo/swag v1.8.12 // indirect
+	github.com/swaggo/swag v1.16.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect

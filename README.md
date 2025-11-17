@@ -55,14 +55,14 @@ A Go-based REST API backend for managing client lifecycles and rentals in a rent
 
 ## API Endpoints
 
-- `GET /v1/health` - Health check (returns DB status)
+- `GET /api/v1/health` - Health check (returns DB status)
 - `GET /swagger/*` - API documentation (Swagger UI)
 
 ### Example Requests
 
 ```bash
 # Health check
-curl http://localhost:8080/v1/health
+curl http://localhost:8080/api/v1/health
 
 # Response: {"status": "healthy"}
 ```
