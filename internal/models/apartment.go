@@ -2,9 +2,9 @@
 package models
 
 import (
-	"errors"
 	"time"
 
+	apperrors "github.com/Andre385/bruschirentals-backend/internal/errors"
 	"github.com/google/uuid"
 )
 
@@ -54,16 +54,16 @@ func NewApartment(id, buildingID uuid.UUID, aptType ApartmentType, price PriceRa
 // Validate checks if the apartment is valid.
 func (a Apartment) Validate() error {
 	if a.ID == uuid.Nil {
-		return errors.New("ID must not be nil")
+		return apperrors.ErrInvalidApartment
 	}
 	if a.BuildingID == uuid.Nil {
-		return errors.New("BuildingID must not be nil")
+		return apperrors.ErrInvalidApartment
 	}
 	if err := a.Price.Validate(); err != nil {
 		return err
 	}
 	if a.PromotionalPrice != nil && *a.PromotionalPrice < 0 {
-		return errors.New("promotional price must be >= 0")
+		return apperrors.ErrInvalidApartment
 	}
 	// Valid ApartmentType is enforced by type, but could add check
 	return nil

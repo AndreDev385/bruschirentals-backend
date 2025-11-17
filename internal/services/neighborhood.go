@@ -4,27 +4,15 @@ package services
 import (
 	"context"
 
-	apperrors "github.com/Andre385/bruschirentals-backend/internal/errors"
 	"github.com/Andre385/bruschirentals-backend/internal/models"
 	"github.com/Andre385/bruschirentals-backend/internal/repositories"
+	"github.com/Andre385/bruschirentals-backend/internal/utils"
 	"github.com/google/uuid"
 )
 
 // NeighborhoodService handles business logic for neighborhoods.
 type NeighborhoodService struct {
 	repo repositories.NeighborhoodRepository
-}
-
-// validateID validates and parses a string ID to UUID.
-func (s *NeighborhoodService) validateID(id string) (uuid.UUID, error) {
-	if id == "" {
-		return uuid.Nil, apperrors.ErrInvalidInput
-	}
-	parsedID, err := uuid.Parse(id)
-	if err != nil {
-		return uuid.Nil, apperrors.ErrInvalidID
-	}
-	return parsedID, nil
 }
 
 // NewNeighborhoodService creates a new neighborhood service.
@@ -40,7 +28,7 @@ func (s *NeighborhoodService) CreateNeighborhood(ctx context.Context, name strin
 		return models.Neighborhood{}, err
 	}
 
-	err = s.repo.Create(ctx, neighborhood)
+	err = s.repo.Save(ctx, neighborhood)
 	if err != nil {
 		return models.Neighborhood{}, err
 	}
@@ -50,7 +38,7 @@ func (s *NeighborhoodService) CreateNeighborhood(ctx context.Context, name strin
 
 // GetNeighborhood retrieves a neighborhood by ID.
 func (s *NeighborhoodService) GetNeighborhood(ctx context.Context, id string) (models.Neighborhood, error) {
-	_, err := s.validateID(id)
+	_, err := utils.ValidateID(id)
 	if err != nil {
 		return models.Neighborhood{}, err
 	}
@@ -65,17 +53,24 @@ func (s *NeighborhoodService) GetNeighborhood(ctx context.Context, id string) (m
 
 // UpdateNeighborhood updates an existing neighborhood with validation.
 func (s *NeighborhoodService) UpdateNeighborhood(ctx context.Context, id string, name string) (models.Neighborhood, error) {
-	parsedID, err := s.validateID(id)
+	// Validate ID
+	neighborhoodUUID, err := utils.ValidateID(id)
 	if err != nil {
 		return models.Neighborhood{}, err
 	}
 
-	neighborhood, err := models.NewNeighborhood(parsedID, name)
+	// Check if neighborhood exists
+	_, err = s.repo.GetByID(ctx, id)
 	if err != nil {
 		return models.Neighborhood{}, err
 	}
 
-	err = s.repo.Update(ctx, neighborhood)
+	neighborhood, err := models.NewNeighborhood(neighborhoodUUID, name)
+	if err != nil {
+		return models.Neighborhood{}, err
+	}
+
+	err = s.repo.Save(ctx, neighborhood)
 	if err != nil {
 		return models.Neighborhood{}, err
 	}
@@ -85,7 +80,7 @@ func (s *NeighborhoodService) UpdateNeighborhood(ctx context.Context, id string,
 
 // DeleteNeighborhood removes a neighborhood by ID.
 func (s *NeighborhoodService) DeleteNeighborhood(ctx context.Context, id string) error {
-	_, err := s.validateID(id)
+	_, err := utils.ValidateID(id)
 	if err != nil {
 		return err
 	}

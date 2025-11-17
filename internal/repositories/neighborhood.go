@@ -8,15 +8,15 @@ import (
 
 	apperrors "github.com/Andre385/bruschirentals-backend/internal/errors"
 	"github.com/Andre385/bruschirentals-backend/internal/models"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 
 // NeighborhoodRepository defines the interface for neighborhood data operations.
 type NeighborhoodRepository interface {
-	Create(ctx context.Context, neighborhood models.Neighborhood) error
+	Save(ctx context.Context, neighborhood models.Neighborhood) error
 	GetByID(ctx context.Context, id string) (models.Neighborhood, error)
-	Update(ctx context.Context, neighborhood models.Neighborhood) error
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context) ([]models.Neighborhood, error)
 }
@@ -31,9 +31,10 @@ func NewNeighborhoodRepository(db *sqlx.DB) NeighborhoodRepository {
 	return &neighborhoodRepository{db: db}
 }
 
-// Create inserts a new neighborhood into the database.
-func (r *neighborhoodRepository) Create(ctx context.Context, neighborhood models.Neighborhood) error {
-	query := `INSERT INTO neighborhoods (id, name) VALUES ($1, $2)`
+// Save inserts or updates a neighborhood in the database.
+func (r *neighborhoodRepository) Save(ctx context.Context, neighborhood models.Neighborhood) error {
+	query := `INSERT INTO neighborhoods (id, name) VALUES ($1, $2)
+	          ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name`
 	_, err := r.db.ExecContext(ctx, query, neighborhood.ID, neighborhood.Name)
 	if err != nil {
 		var pqErr *pq.Error
@@ -47,9 +48,14 @@ func (r *neighborhoodRepository) Create(ctx context.Context, neighborhood models
 
 // GetByID retrieves a neighborhood by ID.
 func (r *neighborhoodRepository) GetByID(ctx context.Context, id string) (models.Neighborhood, error) {
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return models.Neighborhood{}, apperrors.ErrInvalidID
+	}
+
 	var neighborhood models.Neighborhood
 	query := `SELECT id, name FROM neighborhoods WHERE id = $1`
-	err := r.db.GetContext(ctx, &neighborhood, query, id)
+	err = r.db.GetContext(ctx, &neighborhood, query, parsedID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.Neighborhood{}, apperrors.ErrNotFound
@@ -59,27 +65,15 @@ func (r *neighborhoodRepository) GetByID(ctx context.Context, id string) (models
 	return neighborhood, nil
 }
 
-// Update modifies an existing neighborhood.
-func (r *neighborhoodRepository) Update(ctx context.Context, neighborhood models.Neighborhood) error {
-	query := `UPDATE neighborhoods SET name = $2 WHERE id = $1`
-	result, err := r.db.ExecContext(ctx, query, neighborhood.ID, neighborhood.Name)
-	if err != nil {
-		return err
-	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return apperrors.ErrNotFound
-	}
-	return nil
-}
-
 // Delete removes a neighborhood by ID.
 func (r *neighborhoodRepository) Delete(ctx context.Context, id string) error {
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return apperrors.ErrInvalidID
+	}
+
 	query := `DELETE FROM neighborhoods WHERE id = $1`
-	result, err := r.db.ExecContext(ctx, query, id)
+	result, err := r.db.ExecContext(ctx, query, parsedID)
 	if err != nil {
 		return err
 	}

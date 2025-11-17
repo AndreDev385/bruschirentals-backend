@@ -7,10 +7,10 @@ import (
 
 // Building represents a building in a neighborhood.
 type Building struct {
-	ID             uuid.UUID `json:"id"`
-	Name           string    `json:"name"`
-	NeighborhoodID uuid.UUID `json:"neighborhood_id"`
-	Address        string    `json:"address"`
+	ID             uuid.UUID `json:"id" db:"id"`
+	Name           string    `json:"name" db:"name"`
+	NeighborhoodID uuid.UUID `json:"neighborhood_id" db:"neighborhood_id"`
+	Address        string    `json:"address" db:"address"`
 }
 
 // NewBuilding creates a new Building instance with validation.

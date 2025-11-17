@@ -2,24 +2,11 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 
-	apperrors "github.com/Andre385/bruschirentals-backend/internal/errors"
 	"github.com/Andre385/bruschirentals-backend/internal/services"
 	"github.com/labstack/echo/v4"
 )
-
-// mapErrorToResponse maps service errors to HTTP status codes and sanitized messages.
-func mapErrorToResponse(err error) (int, map[string]string) {
-	if errors.Is(err, apperrors.ErrInvalidID) || errors.Is(err, apperrors.ErrInvalidInput) {
-		return http.StatusBadRequest, map[string]string{"error": "invalid request"}
-	}
-	if errors.Is(err, apperrors.ErrNotFound) {
-		return http.StatusNotFound, map[string]string{"error": "not found"}
-	}
-	return http.StatusInternalServerError, map[string]string{"error": "internal server error"}
-}
 
 // Neighborhood represents a neighborhood location.
 // @Description Neighborhood model
@@ -52,19 +39,16 @@ func NewNeighborhoodHandler(service *services.NeighborhoodService) *Neighborhood
 // @Router /api/v1/neighborhoods [post]
 func (h *NeighborhoodHandler) Create(c echo.Context) error {
 	var req struct {
-		Name string `json:"name" validate:"required"`
+		Name string `json:"name"`
 	}
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
-	}
-	if req.Name == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "name is required"})
+		return SendError(c, http.StatusBadRequest, "invalid request")
 	}
 
 	neighborhood, err := h.service.CreateNeighborhood(c.Request().Context(), req.Name)
 	if err != nil {
-		status, resp := mapErrorToResponse(err)
-		return c.JSON(status, resp)
+		status, message := mapErrorToResponse(err)
+		return SendError(c, status, message)
 	}
 
 	return c.JSON(http.StatusCreated, neighborhood)
@@ -83,14 +67,11 @@ func (h *NeighborhoodHandler) Create(c echo.Context) error {
 // @Router /api/v1/neighborhoods/{id} [get]
 func (h *NeighborhoodHandler) Get(c echo.Context) error {
 	id := c.Param("id")
-	if id == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "id is required"})
-	}
 
 	neighborhood, err := h.service.GetNeighborhood(c.Request().Context(), id)
 	if err != nil {
-		status, resp := mapErrorToResponse(err)
-		return c.JSON(status, resp)
+		status, message := mapErrorToResponse(err)
+		return SendError(c, status, message)
 	}
 
 	return c.JSON(http.StatusOK, neighborhood)
@@ -111,24 +92,18 @@ func (h *NeighborhoodHandler) Get(c echo.Context) error {
 // @Router /api/v1/neighborhoods/{id} [put]
 func (h *NeighborhoodHandler) Update(c echo.Context) error {
 	id := c.Param("id")
-	if id == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "id is required"})
-	}
 
 	var req struct {
-		Name string `json:"name" validate:"required"`
+		Name string `json:"name"`
 	}
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
-	}
-	if req.Name == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "name is required"})
+		return SendError(c, http.StatusBadRequest, "invalid request")
 	}
 
 	neighborhood, err := h.service.UpdateNeighborhood(c.Request().Context(), id, req.Name)
 	if err != nil {
-		status, resp := mapErrorToResponse(err)
-		return c.JSON(status, resp)
+		status, message := mapErrorToResponse(err)
+		return SendError(c, status, message)
 	}
 
 	return c.JSON(http.StatusOK, neighborhood)
@@ -146,14 +121,11 @@ func (h *NeighborhoodHandler) Update(c echo.Context) error {
 // @Router /api/v1/neighborhoods/{id} [delete]
 func (h *NeighborhoodHandler) Delete(c echo.Context) error {
 	id := c.Param("id")
-	if id == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "id is required"})
-	}
 
 	err := h.service.DeleteNeighborhood(c.Request().Context(), id)
 	if err != nil {
-		status, resp := mapErrorToResponse(err)
-		return c.JSON(status, resp)
+		status, message := mapErrorToResponse(err)
+		return SendError(c, status, message)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -170,8 +142,8 @@ func (h *NeighborhoodHandler) Delete(c echo.Context) error {
 func (h *NeighborhoodHandler) List(c echo.Context) error {
 	neighborhoods, err := h.service.ListNeighborhoods(c.Request().Context())
 	if err != nil {
-		status, resp := mapErrorToResponse(err)
-		return c.JSON(status, resp)
+		status, message := mapErrorToResponse(err)
+		return SendError(c, status, message)
 	}
 
 	return c.JSON(http.StatusOK, neighborhoods)

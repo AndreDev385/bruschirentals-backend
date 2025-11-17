@@ -7,8 +7,8 @@ import (
 
 // Neighborhood represents a neighborhood location.
 type Neighborhood struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID   uuid.UUID `json:"id" db:"id"`
+	Name string    `json:"name" db:"name"`
 }
 
 // NewNeighborhood creates a new Neighborhood instance with validation.

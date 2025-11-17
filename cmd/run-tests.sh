@@ -9,7 +9,24 @@ echo "Waiting for database to be ready..."
 sleep 10
 
 echo "Running migrations..."
-make migrate-up DB_URL="postgres://user:password@localhost:5433/bruschi_rentals_test?sslmode=disable"
+psql "postgres://user:password@localhost:5433/bruschi_rentals_test?sslmode=disable" -c "
+-- Create neighborhoods table
+CREATE TABLE IF NOT EXISTS neighborhoods (
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+-- Create buildings table
+CREATE TABLE IF NOT EXISTS buildings (
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
+    neighborhood_id UUID NOT NULL REFERENCES neighborhoods(id) ON DELETE CASCADE,
+    address TEXT NOT NULL
+);
+
+-- Create index on neighborhood_id for better query performance
+CREATE INDEX IF NOT EXISTS idx_buildings_neighborhood_id ON buildings(neighborhood_id);
+"
 
 echo "Running e2e tests..."
 DATABASE_URL="postgres://user:password@localhost:5433/bruschi_rentals_test?sslmode=disable" go test ./cmd/server/... -v

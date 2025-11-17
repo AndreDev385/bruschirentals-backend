@@ -1,6 +1,6 @@
 package models
 
-import "errors"
+import apperrors "github.com/Andre385/bruschirentals-backend/internal/errors"
 
 // Promotion represents a promotional offer for rentals.
 type Promotion struct {
@@ -17,14 +17,14 @@ func NewPromotion(monthsFree uint8, conditions []string) (Promotion, error) {
 // Validate checks if the promotion is valid.
 func (p Promotion) Validate() error {
 	if p.MonthsFree == 0 {
-		return errors.New("months free must be greater than 0")
+		return apperrors.ErrInvalidPromotion
 	}
 	if len(p.Conditions) == 0 {
-		return errors.New("conditions must not be empty")
+		return apperrors.ErrInvalidPromotion
 	}
 	for _, cond := range p.Conditions {
 		if cond == "" {
-			return errors.New("conditions must not contain empty strings")
+			return apperrors.ErrInvalidPromotion
 		}
 	}
 	return nil

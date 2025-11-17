@@ -86,9 +86,11 @@ func main() {
 
 	// Initialize repositories
 	neighborhoodRepo := repositories.NewNeighborhoodRepository(db)
+	buildingRepo := repositories.NewBuildingRepository(db)
 
 	// Initialize services
 	neighborhoodService := services.NewNeighborhoodService(neighborhoodRepo)
+	buildingService := services.NewBuildingService(buildingRepo, neighborhoodRepo)
 
 	// Initialize handlers
 	var tracer trace.Tracer
@@ -97,6 +99,7 @@ func main() {
 	}
 	healthHandler := handlers.NewHealthHandler(db, logger, tracer)
 	neighborhoodHandler := handlers.NewNeighborhoodHandler(neighborhoodService)
+	buildingHandler := handlers.NewBuildingHandler(buildingService)
 
 	e.GET("/api/v1/health", healthHandler.CheckHealth)
 
@@ -106,6 +109,13 @@ func main() {
 	e.PUT("/api/v1/neighborhoods/:id", neighborhoodHandler.Update)
 	e.DELETE("/api/v1/neighborhoods/:id", neighborhoodHandler.Delete)
 	e.GET("/api/v1/neighborhoods", neighborhoodHandler.List)
+
+	// Building routes
+	e.POST("/api/v1/buildings", buildingHandler.Create)
+	e.GET("/api/v1/buildings/:id", buildingHandler.Get)
+	e.PUT("/api/v1/buildings/:id", buildingHandler.Update)
+	e.DELETE("/api/v1/buildings/:id", buildingHandler.Delete)
+	e.GET("/api/v1/buildings", buildingHandler.List)
 
 	// Swagger docs
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
